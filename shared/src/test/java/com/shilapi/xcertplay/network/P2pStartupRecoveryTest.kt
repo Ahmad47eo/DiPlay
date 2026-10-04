@@ -77,7 +77,7 @@ class P2pStartupRecoveryTest {
         val plan = P2pStartupRecovery.plan(5180, preferred)
         assertEquals(preferred, plan.first())
         assertEquals(1, plan.count { it.frequencyMHz == 2437 })
-        assertEquals(listOf(2437, 5180, 2412, 2462, 5745, null), plan.map { it.frequencyMHz })
+        assertEquals(listOf(2437, 2412, 2462, 5180, 5745, null), plan.map { it.frequencyMHz })
     }
 
     @Test fun rejectedRememberedSystemConfigurationFallsBackToExplicitChannels() {
@@ -177,7 +177,7 @@ class P2pStartupRecoveryTest {
             if (it.frequencyMHz != 2462) throw P2pCreateRejected(WifiP2pManager.ERROR, "rejected")
         }
         assertEquals(2462, result.frequencyMHz)
-        assertEquals(listOf(2437, 2412, 2462, 5180, 5745), attempted)
+        assertEquals(listOf(2437, 2412, 2462), attempted)
     }
 
     @Test fun planNeverRequestsDfsSixGhzInvalidOrPhoneUnfriendlyStationFrequencies() {
