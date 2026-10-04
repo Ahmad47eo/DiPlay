@@ -327,4 +327,3 @@ class P2pStartupRecoveryTest {
         stackTrace = arrayOf(StackTraceElement("android.net.wifi.p2p.WifiP2pConfig\$Builder", "build", null, 1))
     }
 }
-\n    @Test fun unassociatedTvPrefersTwoGhzForLegacyStationCompatibility() {\n        val plan = P2pStartupRecovery.plan(null)\n        assertEquals(2437, plan.first().frequencyMHz)\n        assertEquals(listOf(2437, 2412, 2462, 5180, 5745, null), plan.map { it.frequencyMHz })\n    }\n
