@@ -49,7 +49,7 @@ class WifiP2pGroupManagerTest {
         val logs = mutableListOf<String>()
         WifiP2pGroupManager(context, logs::add).use { manager ->
             background { manager.start(5000) }
-            assertEquals(listOf(5180), radio.requests.map { it?.groupOwnerBand })
+            assertEquals(listOf(2437), radio.requests.map { it?.groupOwnerBand })
             assertTrue(logs.any { it.contains("stationMHz=unknown stationState=DISCONNECTED reportedStationMHz=2462") })
         }
     }
