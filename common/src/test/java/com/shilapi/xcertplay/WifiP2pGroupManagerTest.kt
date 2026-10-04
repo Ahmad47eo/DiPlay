@@ -61,7 +61,7 @@ class WifiP2pGroupManagerTest {
         shadowOf(info).setSupplicantState(SupplicantState.ASSOCIATING)
         WifiP2pGroupManager(context).use { manager ->
             background { manager.start(5000) }
-            assertEquals(listOf(5180), radio.requests.map { it?.groupOwnerBand })
+            assertEquals(listOf(2437), radio.requests.map { it?.groupOwnerBand })
         }
     }
 
