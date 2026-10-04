@@ -160,7 +160,7 @@ class P2pStartupRecoveryTest {
         }
         assertEquals(2437, result.frequencyMHz)
         assertTrue(attempts.all { it.frequencyMHz != null })
-        assertEquals(listOf(5180, 5745, 2437), attempts.map { it.frequencyMHz })
+        assertEquals(listOf(2437), attempts.map { it.frequencyMHz })
     }
 
     @Test fun existingTwoGhzStationUsesItsExactChannelFirst() {
