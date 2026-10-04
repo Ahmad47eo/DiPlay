@@ -77,7 +77,7 @@ class P2pStartupRecoveryTest {
         val plan = P2pStartupRecovery.plan(5180, preferred)
         assertEquals(preferred, plan.first())
         assertEquals(1, plan.count { it.frequencyMHz == 2437 })
-        assertEquals(listOf(2437, 5180, 5745, 2412, 2462, null), plan.map { it.frequencyMHz })
+        assertEquals(listOf(2437, 2412, 2462, 5180, 5745, null), plan.map { it.frequencyMHz })
     }
 
     @Test fun rejectedRememberedSystemConfigurationFallsBackToExplicitChannels() {
@@ -116,7 +116,7 @@ class P2pStartupRecoveryTest {
         assertEquals(5, retries)
     }
 
-    @Test fun unconnectedStationStartsWithFiveGhzAndBusyRetriesEachChannelOnce() {
+    @Test fun unconnectedStationStartsWithTwoGhzAndBusyRetriesEachChannelOnce() {
         val attempts = mutableListOf<P2pCreationRequest>()
         try {
             P2pStartupRecovery.create(null, {}) {
@@ -177,13 +177,13 @@ class P2pStartupRecoveryTest {
             if (it.frequencyMHz != 2462) throw P2pCreateRejected(WifiP2pManager.ERROR, "rejected")
         }
         assertEquals(2462, result.frequencyMHz)
-        assertEquals(listOf(5180, 5745, 2437, 2412, 2462), attempted)
+        assertEquals(listOf(2437, 2412, 2462, 5180, 5745), attempted)
     }
 
     @Test fun planNeverRequestsDfsSixGhzInvalidOrPhoneUnfriendlyStationFrequencies() {
         for (station in listOf(0, -1, 5191, 5260, 5500, 5955, 2472, 2484)) {
             val plan = P2pStartupRecovery.plan(station)
-            assertEquals(listOf(5180, 5745, 2437, 2412, 2462, null), plan.map { it.frequencyMHz })
+            assertEquals(listOf(2437, 2412, 2462, 5180, 5745, null), plan.map { it.frequencyMHz })
         }
         val plan = P2pStartupRecovery.plan(5200)
         assertEquals(5200, plan.first().frequencyMHz)
@@ -327,3 +327,4 @@ class P2pStartupRecoveryTest {
         stackTrace = arrayOf(StackTraceElement("android.net.wifi.p2p.WifiP2pConfig\$Builder", "build", null, 1))
     }
 }
+\n    @Test fun unassociatedTvPrefersTwoGhzForLegacyStationCompatibility() {\n        val plan = P2pStartupRecovery.plan(null)\n        assertEquals(2437, plan.first().frequencyMHz)\n        assertEquals(listOf(2437, 2412, 2462, 5180, 5745, null), plan.map { it.frequencyMHz })\n    }\n
