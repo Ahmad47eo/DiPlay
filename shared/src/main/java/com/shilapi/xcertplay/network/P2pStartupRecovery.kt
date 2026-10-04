@@ -43,11 +43,26 @@ internal object P2pStartupRecovery {
         if (aligned5) channel(P2pCreationMode.ALIGNED_5_GHZ, requireNotNull(stationFrequency))
         fun twoGhz() = listOf(2437, 2412, 2462).forEach { channel(P2pCreationMode.FIXED_2_GHZ, it) }
         fun fiveGhz() = listOf(5180, 5745).forEach { channel(P2pCreationMode.FIXED_5_GHZ, it) }
-        // Keep a shared radio on its existing station channel when possible. Otherwise prefer
-        // explicit non-DFS 5 GHz, then channels 6/1/11. The platform enforces regulatory limits.
-        if (aligned24) { twoGhz(); fiveGhz() } else { fiveGhz(); twoGhz() }
-        // Some vendors only implement the default-configuration API. Use it last, after every
-        // explicit-frequency option has been rejected, never before the 2.4 GHz attempts.
+
+        // Android TV is often not associated with a normal Wi-Fi network. In that case
+        // stationFrequency is null and the old plan tried 5 GHz first. Some TV Wi-Fi
+        // chipsets expose P2P correctly but have weaker legacy-station interoperability
+        // with 5 GHz P2P groups. Prefer the most broadly compatible 2.4 GHz channels first
+        // when there is no existing station channel to preserve; 5 GHz remains an automatic
+        // fallback. If the TV is already associated, keep the existing aligned-band choice.
+        if (aligned24) {
+            twoGhz()
+            fiveGhz()
+        } else if (aligned5) {
+            fiveGhz()
+            twoGhz()
+        } else {
+            twoGhz()
+            fiveGhz()
+        }
+
+        // Some vendors only implement the default-configuration API. Use it last, after
+        // explicit-frequency options have been rejected.
         if (none { it.mode == P2pCreationMode.SYSTEM_DEFAULT }) add(P2pCreationRequest(P2pCreationMode.SYSTEM_DEFAULT))
     }
 
@@ -71,29 +86,19 @@ internal object P2pStartupRecovery {
                         throw P2pChannelUnavailableException(preferredChannel, failure.message.orEmpty(), failure)
                     }
                     if (mode.mode == P2pCreationMode.SYSTEM_DEFAULT) throw failure
-                    // No creation request was issued. Keep the existing foreign-group and
-                    // prerequisite interlock, then try the API 29 null-config overload once.
                     beforeRetry()
                     val systemDefault = P2pCreationRequest(P2pCreationMode.SYSTEM_DEFAULT)
                     request(systemDefault)
-                    // Its generated credentials must be read from the real returned group.
-                    // A failed default request exits directly instead of reentering this plan.
                     return systemDefault
                 } catch (failure: P2pCreateRejected) {
                     lastRejection = failure
                     when {
-                        // A rejection that is not tied to one channel cannot be fixed by asking
-                        // for a different channel, and retrying would only stall the bring-up.
                         failure.reason == WifiP2pManager.NO_PERMISSION ||
                             failure.reason == WifiP2pManager.P2P_UNSUPPORTED -> throw failure
                         failure.reason == WifiP2pManager.BUSY && !retriedBusy -> {
                             retriedBusy = true
                             beforeRetry()
                         }
-                        // BUSY is a per-channel outcome, not a verdict on Wi-Fi Direct: several
-                        // firmwares reject every 5 GHz request while 2.4 GHz or the system
-                        // default configuration still succeeds. Keep walking the plan instead
-                        // of giving up on the first channel the driver refuses.
                         index < modes.lastIndex -> {
                             beforeRetry()
                             break
