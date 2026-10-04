@@ -77,7 +77,7 @@ class P2pStartupRecoveryTest {
         val plan = P2pStartupRecovery.plan(5180, preferred)
         assertEquals(preferred, plan.first())
         assertEquals(1, plan.count { it.frequencyMHz == 2437 })
-        assertEquals(listOf(2437, 2412, 2462, 5180, 5745, null), plan.map { it.frequencyMHz })
+        assertEquals(listOf(2437, 5180, 2412, 2462, 5745, null), plan.map { it.frequencyMHz })
     }
 
     @Test fun rejectedRememberedSystemConfigurationFallsBackToExplicitChannels() {
